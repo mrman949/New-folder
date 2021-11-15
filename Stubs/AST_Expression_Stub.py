@@ -1,4 +1,6 @@
 from AST.AST_Nodes import *
+import random
+import sys
 
 
 class AST_Expression_Stub(AST_Expression):
@@ -9,6 +11,7 @@ class AST_Expression_Stub(AST_Expression):
     def __init__(self) -> None:
         super(AST_Node, self).__init__()
         self.times_walked = 0
+        self._rid = random.randint(0,sys.maxsize)
         self._affixed_nodes = []
         self._expected_nodes = []
         
@@ -19,7 +22,7 @@ class AST_Expression_Stub(AST_Expression):
     def walk(self, name_space: Name_Space) -> AST_Data:
         self.verify_node()
         self.times_walked += 1
-        print('\t\texpression times_walked:', self.times_walked)
+        print('\t\texpression',self._rid, 'times_walked:' , self.times_walked)
 
         d = AST_Data()
         d.set_type(Type_Enum.bool)

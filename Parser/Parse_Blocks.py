@@ -2,6 +2,7 @@ from Lexer.Token import Token
 from Lexer.Lexemes.Lexemes import Token_Enum
 
 from Stubs.AST_Statement_Stub import AST_Statement_Stub
+from Stubs.AST_Expression_Stub import AST_Expression_Stub
 from Parser.Parse_Error import Parser_Syntax_Error
 
 from typing import List
@@ -129,15 +130,62 @@ def Parse_Statement(tokens:List[Token]) -> AST_Node:
     statement_node = None
 
     if tokens[0].get_type() == Token_Enum.Keywords.While:
-        #statement_node = AST_Statement_While()
+        statement_node = AST_Statement_While()
 
         tokens.pop(0) # Remove While
 
         if tokens[0].get_type() != Token_Enum.Closures.Paren_Open:
             raise(Parser_Syntax_Error("Expected ( enclosing condition after while token "))
         
-        closure_tokens = find_closure_tokens(tokens)
-        condition = Parse_Expression(closure_tokens)
+        closure_tokens = find_closure_tokens(tokens)# List of tokens
+        condition = Parse_Expression(closure_tokens[1:-1])# AST_Expression
+        if tokens[0].get_type() != Token_Enum.Closures.Curly_Open: #OR PAREN????
+            raise(Parser_Syntax_Error("Expected \{ enclosing condition after while's condition "))
+
+                
+        block_tokens = find_closure_tokens(tokens)
+        block_list = Parse_Blocks(block_tokens[1:-1])
+        if tokens[0].get_type() != Token_Enum.Line_End.Line_End:
+            raise(Parser_Syntax_Error("Expected statement to end in ;, found {}".format(tokens[0])))
+        else:
+            tokens[0].pop()
+        
+        statement_node.affix_nodes(condition, block_list)
+    elif tokens[0].get_type() == Token_Enum.Keywords.If:
+        statement_node = AST_Statement_If()
+
+        tokens.pop(0) # Remove if
+
+        if tokens[0].get_type() != Token_Enum.Closures.Paren_Open:
+            raise(Parser_Syntax_Error("Expected ( enclosing condition after if token "))
+        
+        closure_tokens = find_closure_tokens(tokens)# List of tokens
+        condition = Parse_Expression(closure_tokens[1:-1])# AST_Expression
+        if tokens[0].get_type() != Token_Enum.Closures.Curly_Open:
+            raise(Parser_Syntax_Error("Expected \{ enclosing condition after if's condition "))
+
+                
+        block_tokens = find_closure_tokens(tokens)
+        block_list = Parse_Blocks(block_tokens[1:-1])
+        if tokens[0].get_type() == Token_Enum.Keywords.Else:
+            tokens.pop(0) #remove else
+            block_tokens = find_closure_tokens(tokens)
+            block_list_else = Parse_Blocks(block_tokens[1:-1])
+
+            statement_node.affix_nodes(condition, block_list,block_list_else)
+        else:
+            statement_node.affix_nodes(condition,block_list)
+            
+        if tokens[0].get_type() != Token_Enum.Line_End.Line_End:
+            raise(Parser_Syntax_Error("Expected statement to end in ;, found {}".format(tokens[0])))
+        else:
+            tokens[0].pop()
+        
+        statement_node.affix_nodes(condition, block_list)
+
+
+    return statement_node
+
         
         
 
@@ -150,7 +198,7 @@ def Parse_Statement(tokens:List[Token]) -> AST_Node:
 
 
 def Parse_Blocks(tokens:List[Token]) -> AST_Node:
-    tokens = copy.deepcopy(tokens)
+    #tokens = copy.deepcopy(tokens)
 
     stack = []
 
