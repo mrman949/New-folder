@@ -235,6 +235,60 @@ class AST_Statement_Assignment(AST_Statement):
         return AST_Data()
 
 
+class AST_Statement_While(AST_Statement):
+    """
+
+    """
+
+    def __init__(self) -> None:
+        super(AST_Node, self).__init__()
+        self._expected_nodes = [AST_Expression, AST_Block_List]
+
+    def affix_nodes(self, condition: AST_Expression, block_list: AST_Block_List) -> None:
+        self._affixed_nodes = [condition, block_list]
+        self.verify_node()
+
+    def walk(self, name_space: Name_Space) -> AST_Data:
+        
+        condition = self._affixed_nodes[0].walk(name_space) # check the condition
+
+        while condition.get_value() == True:
+
+            self._affixed_nodes[1].walk(name_space)
+
+            condition = self._affixed_nodes[0].walk(name_space) # check the condition again
+        
+        return AST_Data()
+
+
+class AST_Statement_If(AST_Statement):
+    """
+
+    """
+
+    def __init__(self) -> None:
+        super(AST_Node, self).__init__()
+        self._expected_nodes = [AST_Expression, AST_Block_List, AST_Block_List]
+
+    def affix_nodes(self, condition: AST_Expression, block_list: AST_Block_List, block_list_else: AST_Block_List = AST_Statement()) -> None:
+        self._affixed_nodes = [condition, block_list, block_list_else]
+        self.verify_node()
+
+    def walk(self, name_space: Name_Space) -> AST_Data:
+        
+        condition = self._affixed_nodes[0].walk(name_space) # check the condition
+
+        if condition.get_value() == True:
+
+            self._affixed_nodes[1].walk(name_space)
+        
+        else:
+
+            self._affixed_nodes[2].walk(name_space)
+        
+        return AST_Data()
+
+
 ### ======================================== Block_List / Statement / Expression ======================================== ###
 
 
@@ -459,6 +513,48 @@ class AST_Expression_Power(AST_Expression):
             raise AST_Runtime_Error("{}: No matching method for ({} ** {})".format(type(self), data_lhs.get_type(), data_rhs.get_type()))
 
         return node_ret
+
+
+class AST_Expression_Logical_Equals(AST_Expression):
+    """
+
+    """
+
+    def __init__(self) -> None:
+        super(AST_Node, self).__init__()
+        self._expected_nodes = [AST_Expression, AST_Expression]
+
+    def affix_nodes(self, expression_lhs: AST_Expression, expression_rhs: AST_Expression) -> None:
+        self._affixed_nodes = [expression_lhs, expression_rhs]
+        self.verify_node()
+
+    def walk(self, name_space: Name_Space) -> AST_Data:
+        node_ret = AST_Data()
+
+        data_lhs = self._affixed_nodes[0].walk(name_space)
+        data_rhs = self._affixed_nodes[1].walk(name_space)
+
+        if (data_lhs.get_type() in (Type_Enum.int, Type_Enum.float, Type_Enum.bool) and # Divide numbers
+                data_rhs.get_type() in (Type_Enum.int, Type_Enum.float, Type_Enum.bool)):
+            node_ret.set_value(data_lhs.get_value() ** data_rhs.get_value())
+
+            if (data_lhs.get_type() == Type_Enum.float or # Check for floating-point
+                    data_rhs.get_type() == Type_Enum.float):
+                node_ret.set_type(Type_Enum.float)
+            else:
+                node_ret.set_type(Type_Enum.int)
+
+        elif data_lhs.get_type() == Type_Enum.undefined:
+            raise AST_Runtime_Error("{}: Left hand expression is undefined".format(type(self)))
+
+        elif data_rhs.get_type() == Type_Enum.undefined:
+            raise AST_Runtime_Error("{}: Right hand expression is undefined".format(type(self)))
+
+        else:
+            raise AST_Runtime_Error("{}: No matching method for ({} == {})".format(type(self), data_lhs.get_type(), data_rhs.get_type()))
+
+        return node_ret
+
 
 
 ### ======================================== Block_List / Statement / Expression / Literal ======================================== ###
