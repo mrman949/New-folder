@@ -175,13 +175,13 @@ def Parse_Statement(tokens:List[Token]) -> AST_Node:
             statement_node.affix_nodes(condition, block_list,block_list_else)
         else:
             statement_node.affix_nodes(condition,block_list)
-            
+
         if tokens[0].get_type() != Token_Enum.Line_End.Line_End:
             raise(Parser_Syntax_Error("Expected statement to end in ;, found {}".format(tokens[0])))
         else:
             tokens[0].pop()
         
-        statement_node.affix_nodes(condition, block_list)
+        #statement_node.affix_nodes(condition, block_list)
 
 
     return statement_node
