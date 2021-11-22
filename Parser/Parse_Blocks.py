@@ -51,7 +51,7 @@ def find_closure_tokens(tokens:List[Token]) -> List[Token]:
             closure_stack.pop()
         if not closure_stack:
             break
-    if not closure_stack:
+    if closure_stack:
         raise(Parser_Syntax_Error("Reached EOF before matching closure could be found"))
     return closure_tokens
         
@@ -123,15 +123,14 @@ def Parse_Expression(tokens:List[Token]) -> AST_Node:
     return AST_Expression_Stub # WRITE
 
 def Parse_Statement(tokens:List[Token]) -> AST_Node:
-    
 
     if tokens[-1].get_type() != Token_Enum.Line_End.Line_End:
          raise(Parser_Syntax_Error("Reached EOF while parsing statement, expected ;"))
     statement_node = None
-
+    
     if tokens[0].get_type() == Token_Enum.Keywords.While:
         statement_node = AST_Statement_While()
-
+        
         tokens.pop(0) # Remove While
 
         if tokens[0].get_type() != Token_Enum.Closures.Paren_Open:
@@ -139,7 +138,7 @@ def Parse_Statement(tokens:List[Token]) -> AST_Node:
         
         closure_tokens = find_closure_tokens(tokens)# List of tokens
         condition = Parse_Expression(closure_tokens[1:-1])# AST_Expression
-        if tokens[0].get_type() != Token_Enum.Closures.Curly_Open: #OR PAREN????
+        if tokens[0].get_type() != Token_Enum.Closures.Curly_Open:
             raise(Parser_Syntax_Error("Expected \{ enclosing condition after while's condition "))
 
                 
@@ -148,7 +147,7 @@ def Parse_Statement(tokens:List[Token]) -> AST_Node:
         if tokens[0].get_type() != Token_Enum.Line_End.Line_End:
             raise(Parser_Syntax_Error("Expected statement to end in ;, found {}".format(tokens[0])))
         else:
-            tokens[0].pop()
+            tokens.pop(0)
         
         statement_node.affix_nodes(condition, block_list)
     elif tokens[0].get_type() == Token_Enum.Keywords.If:
@@ -179,7 +178,13 @@ def Parse_Statement(tokens:List[Token]) -> AST_Node:
         if tokens[0].get_type() != Token_Enum.Line_End.Line_End:
             raise(Parser_Syntax_Error("Expected statement to end in ;, found {}".format(tokens[0])))
         else:
-            tokens[0].pop()
+            tokens.pop(0)
+
+    else:
+
+        return Parse_Expression(tokens)
+
+
         
         #statement_node.affix_nodes(condition, block_list)
 
@@ -215,6 +220,10 @@ def Parse_Blocks(tokens:List[Token]) -> AST_Node:
 
     last_block_list = None
     next_block_list = None
+    #if only one statment, return it.
+
+    if len(stack) == 1:
+        return stack[0]
 
     while stack:
         next_statement_node = stack.pop()
@@ -224,6 +233,7 @@ def Parse_Blocks(tokens:List[Token]) -> AST_Node:
         else:
             last_block_list = AST_Block_List()
             if len(stack) == 0:
+                
                 root = next_statement_node
             else:
                 root = last_block_list
