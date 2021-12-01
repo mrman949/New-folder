@@ -30,5 +30,4 @@ class AST_Expression_Stub(AST_Expression):
             d.set_value(True)
         else:
             d.set_value(False)
-
         return d

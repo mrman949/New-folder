@@ -246,6 +246,7 @@ class AST_Statement_While(AST_Statement):
 
     def affix_nodes(self, condition: AST_Expression, block_list: AST_Block_List) -> None:
         self._affixed_nodes = [condition, block_list]
+        print(self._affixed_nodes)
         self.verify_node()
 
     def walk(self, name_space: Name_Space) -> AST_Data:
@@ -272,6 +273,7 @@ class AST_Statement_If(AST_Statement):
 
     def affix_nodes(self, condition: AST_Expression, block_list: AST_Block_List, block_list_else: AST_Block_List = AST_Statement()) -> None:
         self._affixed_nodes = [condition, block_list, block_list_else]
+        print(self._affixed_nodes)
         self.verify_node()
 
     def walk(self, name_space: Name_Space) -> AST_Data:

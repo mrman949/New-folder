@@ -120,7 +120,9 @@ def Parse_Blocks(tokens:List[Token]) -> AST_Node:
 
 def Parse_Expression(tokens:List[Token]) -> AST_Node:
 
-    return AST_Expression_Stub # WRITE
+
+
+    return AST_Expression_Stub() # WRITE
 
 def Parse_Statement(tokens:List[Token]) -> AST_Node:
 
@@ -137,7 +139,9 @@ def Parse_Statement(tokens:List[Token]) -> AST_Node:
             raise(Parser_Syntax_Error("Expected ( enclosing condition after while token "))
         
         closure_tokens = find_closure_tokens(tokens)# List of tokens
+        
         condition = Parse_Expression(closure_tokens[1:-1])# AST_Expression
+        
         if tokens[0].get_type() != Token_Enum.Closures.Curly_Open:
             raise(Parser_Syntax_Error("Expected \{ enclosing condition after while's condition "))
 
@@ -179,6 +183,13 @@ def Parse_Statement(tokens:List[Token]) -> AST_Node:
             raise(Parser_Syntax_Error("Expected statement to end in ;, found {}".format(tokens[0])))
         else:
             tokens.pop(0)
+    
+    elif tokens[0].get_type() == Token_Enum.Functions.Print:
+        statement_node = AST_Function_Print()
+
+        tokens.pop(0) # Removes the print token
+
+        
 
     else:
 
