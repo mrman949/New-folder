@@ -1,3 +1,4 @@
+from os import stat
 from Lexer.Token import Token
 from Lexer.Lexemes.Lexemes import Token_Enum
 
@@ -189,7 +190,31 @@ def Parse_Statement(tokens:List[Token]) -> AST_Node:
 
         tokens.pop(0) # Removes the print token
 
+        closure_tokens = find_closure_tokens(tokens) # Return list of tokens
+
+        expression = Parse_Expression(closure_tokens[1:-1])
+
+        statement_node.affix_nodes(expression) 
         
+        if tokens[0].get_type() != Token_Enum.Line_End.Line_End:
+            raise(Parser_Syntax_Error("Expected statement to end in ;, found {}".format(tokens[0])))
+        else:
+            tokens.pop(0)
+
+    elif tokens[0].get_type() == Token_Enum.Identifiers.Iden and len(tokens) >= 2 and tokens[1].get_type() == Token_Enum.Operators.Equal:
+        
+        statement_node = AST_Statement_Assignment()
+        
+        lhs_identifier = AST_Identifier(tokens.pop(0).get_string()) # Pop Lhs
+        
+        
+        tokens.pop(0) #remove '='
+
+        expression_tokens = find_next_statement(tokens)
+
+        rhs_expression = Parse_Expression(expression_tokens)
+
+        statement_node.affix_nodes(lhs_identifier, rhs_expression)
 
     else:
 
